@@ -100,7 +100,7 @@ alias cct='function _cct() { curl cheat.sh/$1; }; _cct'
 # --------------------------------
 # Navigate to most frequently used directories
 alias dot='cd /home/$USER/2.Areas/Technology/DevOps/Dotfiles'
-alias bad='cd /home/$USER/2.Areas/Technology/DevOps/Dotfiles'
+alias bad='cd /home/$USER/2.Areas/Technology/DevOps/BookwormAnsibleDesktop'
 
 # --------------------------------
 # Aliases for command-line fuzzy finder
