@@ -83,6 +83,9 @@ nnoremap <Leader>5 5gt<CR>
 nnoremap <Leader>t :tabnew<CR>
 nnoremap <Leader>c :tabclose<CR>
 
+" YAML Edits
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
 " Markdown Edits
 let g:vim_markdown_autowrite = 1
 let g:vim_markdown_no_extensions_in_markdown = 1
