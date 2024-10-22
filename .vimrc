@@ -33,7 +33,7 @@ set shiftwidth=2
 set expandtab
 set smartindent
 set nofoldenable
-set nowrap
+set wrap linebreak nolist
 set smartcase
 set noswapfile
 set nobackup
