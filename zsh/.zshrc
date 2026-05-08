@@ -70,3 +70,6 @@ fi
 
 # 9. FINALIZE THEME
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+## Global Aliases
+alias claudeyolo="claude --dangerously-skip-permissions"
