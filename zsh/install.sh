@@ -29,7 +29,7 @@ rm -f ~/.zcompdump*
 
 # 5. Orchestrate links with GNU Stow
 echo "Linking dotfiles with GNU Stow..."
-cd ~/dotfiles
-stow zsh
+cd ~/dev/dotfiles
+stow -t ~ zsh vim git
 
 echo "✅ System ready. Run 'source ~/.zshrc' to start."
