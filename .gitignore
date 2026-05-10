@@ -3,3 +3,4 @@
 .zsh_sessions/
 .python_history
 .netrc
+.claude/settings.local.json
