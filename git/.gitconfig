@@ -1,2 +1,9 @@
 [user]
 	email = 80340739+JaydotMurf@users.noreply.github.com
+	name = Jerraill
+
+[includeIf "gitdir:~/dev/personal/openclaw/"]
+    path = ~/.gitconfig-openclaw
+
+[init]
+	defaultBranch = main
