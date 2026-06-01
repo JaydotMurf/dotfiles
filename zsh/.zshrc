@@ -59,7 +59,12 @@ alias sz="source ~/.zshrc && echo 'Zsh config reloaded!'"
 alias k=kubectl
 
 ## 7. EXTERNAL TOOLS
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# ── Platform-aware Homebrew ──────────────────────────────
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ "$(uname -s)" == "Linux" ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
 eval "$(zoxide init zsh)"
 [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
