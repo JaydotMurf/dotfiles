@@ -37,6 +37,7 @@ zinit cdreplay -q
 ## 5. CORE SYSTEM SETTINGS
 export EDITOR='code --wait'
 export VISUAL='code --wait'
+HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt sharehistory
