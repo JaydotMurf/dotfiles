@@ -1,3 +1,4 @@
+export PATH="$HOME/.local/bin:$PATH"
 # Create by JayDotMurf
 
 # POWERLEVEL10K
