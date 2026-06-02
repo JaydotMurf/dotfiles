@@ -98,3 +98,5 @@ alias gpl="git pull"
 alias gst="git stash"
 alias gstl="git stash list"
 alias glg='git log --graph --oneline --decorate --all'
+# Army AVD
+alias avd='pkill -f chrome 2>/dev/null; sleep 2; google-chrome https://rdweb.wvd.azure.us/arm/webclient/index.html &'
