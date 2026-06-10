@@ -85,6 +85,7 @@ fi
 
 # Claude aliases
 alias claudeyolo="claude --dangerously-skip-permissions"
+alias claudeplan="claude --permission-mode plan"
 
 # Git aliases
 alias gi="git init"
@@ -101,3 +102,6 @@ alias gstl="git stash list"
 alias glg='git log --graph --oneline --decorate --all'
 # Army AVD
 alias avd='pkill -f chrome 2>/dev/null; sleep 2; google-chrome https://rdweb.wvd.azure.us/arm/webclient/index.html &'
+
+# Fabric aliases
+alias fabric='fabric-ai'
