@@ -13,6 +13,23 @@ This repository contains my personal development environment configuration, opti
 
 ## Installation
 
-1. Install Homebrew and GNU Stow.
-2. Clone this repo to `~/dotfiles`.
-3. Run `stow zsh`.
+1. Clone this repo to `~/dev/dotfiles`.
+2. Run the bootstrap script — it installs Homebrew, GNU Stow, and core dependencies, then wires up all symlinks:
+   ```bash
+   cd ~/dev/dotfiles && bash zsh/install.sh
+   ```
+3. To re-distribute after pulling changes (if symlinks are already in place):
+   ```bash
+   cd ~/dev/dotfiles && stow -t ~ zsh vim git
+   ```
+
+### What gets symlinked
+
+| Package | Source | Target |
+|---------|--------|--------|
+| `zsh` | `zsh/.zshrc` | `~/.zshrc` |
+| `zsh` | `zsh/.p10k.zsh` | `~/.p10k.zsh` |
+| `zsh` | `zsh/install.sh` | `~/install.sh` |
+| `vim` | `vim/.vimrc` | `~/.vimrc` |
+| `git` | `git/.gitconfig` | `~/.gitconfig` |
+| `git` | `git/.gitconfig-openclaw` | `~/.gitconfig-openclaw` |
