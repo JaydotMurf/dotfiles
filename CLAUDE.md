@@ -48,6 +48,16 @@ brew bundle --file=brew/Brewfile
 
 **Cross-platform**: `install.sh` branches on `uname -s` for Darwin vs Linux. On Linux, `stow` is installed via apt; `uv`, `fzf`, and `zoxide` come from Linuxbrew. Zsh permission fixes are macOS-only.
 
+## Cheat Sheet
+
+`docs/cheatsheet.md` covers tmux, zsh, git, and vim. Rendered in the terminal via the `cheat` function (defined in `.zshrc`, requires `glow`):
+
+```bash
+cheat          # full sheet
+cheat tmux     # tmux section only
+cheat git      # git section only
+```
+
 ## Tmux
 
 Prefix is `C-a`. Plugin manager is TPM — auto-bootstraps on first `tmux` launch (clones TPM, installs all plugins). Plugins: `tmux-sensible`, `vim-tmux-navigator`, `tmux-yank`, `tmux-resurrect`, `tmux-continuum`. Sessions auto-save every 10 min and restore on server restart. Status bar uses Tokyo Night palette.
