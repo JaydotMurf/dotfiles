@@ -23,7 +23,7 @@ if [[ "$OS" == "Darwin" ]]; then
     brew install stow uv fzf zoxide
 else
     # stow via apt on Ubuntu; brew for the rest
-    sudo apt-get install -y stow 2>/dev/null || brew install stow
+    sudo apt-get install -y stow xclip 2>/dev/null || brew install stow
     brew install uv fzf zoxide
 fi
 
@@ -44,6 +44,6 @@ rm -f ~/.zcompdump*
 # 5. Orchestrate links with GNU Stow
 echo "Linking dotfiles with GNU Stow..."
 cd ~/dev/dotfiles
-stow -t ~ zsh vim git
+stow -t ~ zsh vim git tmux
 
 echo "✅ System ready. Run 'source ~/.zshrc' to start."
