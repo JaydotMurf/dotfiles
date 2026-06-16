@@ -81,6 +81,16 @@ fi
 ## 9. FINALIZE THEME
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+# Cheat sheet
+cheat() {
+  local file="$HOME/dev/dotfiles/docs/cheatsheet.md"
+  if [[ -z "$1" ]]; then
+    glow "$file"
+  else
+    awk -v s="$1" 'BEGIN{IGNORECASE=1} /^## /{if(f)exit; if($0~s)f=1} f' "$file" | glow -
+  fi
+}
+
 # Aliases
 
 # Claude aliases
