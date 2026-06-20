@@ -56,7 +56,7 @@ bindkey '^n' history-search-forward
 alias ..="cd .."
 alias ls="ls -G"
 alias ll="ls -alhG"
-alias dot="cd ~/dotfiles"
+alias dot="cd ~/dev/dotfiles"
 alias sz="source ~/.zshrc && echo 'Zsh config reloaded!'"
 alias k=kubectl
 
