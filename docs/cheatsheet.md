@@ -20,6 +20,7 @@
 | `prefix h/j/k/l` | Move focus between panes (vim-style) |
 | `Ctrl+h/j/k/l` | Move focus between panes (no prefix needed) |
 | `prefix H/J/K/L` | Resize pane (hold and repeat) |
+| `prefix S` | Toggle sync to all panes in window (broadcast) |
 | `prefix z` | Zoom pane to full screen / unzoom |
 | `prefix x` | Kill current pane |
 
