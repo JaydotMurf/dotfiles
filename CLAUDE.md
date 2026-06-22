@@ -36,6 +36,7 @@ brew bundle --file=brew/Brewfile
 | `git/`    | `~`       | `.gitconfig`, `.gitconfig-openclaw` |
 | `vim/`    | `~`       | `.vimrc` |
 | `tmux/`   | `~`       | `.tmux.conf` |
+| `gemini/`  | `~`       | `.gemini/config/skills.json` — Antigravity shared skills registry |
 | `brew/`   | not stowed | `Brewfile` — package manifest |
 
 ## Architecture Notes

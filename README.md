@@ -33,3 +33,4 @@ This repository contains my personal development environment configuration, opti
 | `vim` | `vim/.vimrc` | `~/.vimrc` |
 | `git` | `git/.gitconfig` | `~/.gitconfig` |
 | `git` | `git/.gitconfig-openclaw` | `~/.gitconfig-openclaw` |
+| `gemini` | `gemini/.gemini/config/skills.json` | `~/.gemini/config/skills.json` |
