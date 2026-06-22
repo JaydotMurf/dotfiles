@@ -115,3 +115,7 @@ alias avd='pkill -f chrome 2>/dev/null; sleep 2; google-chrome https://rdweb.wvd
 
 # Fabric aliases
 alias fabric='fabric-ai'
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/jerraill/.local/bin:$PATH"

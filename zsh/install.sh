@@ -44,6 +44,6 @@ rm -f ~/.zcompdump*
 # 5. Orchestrate links with GNU Stow
 echo "Linking dotfiles with GNU Stow..."
 cd ~/dev/dotfiles
-stow -t ~ zsh vim git tmux
+stow -t ~ zsh vim git tmux gemini
 
 echo "✅ System ready. Run 'source ~/.zshrc' to start."
