@@ -20,7 +20,7 @@ fi
 # 2. Install core dependencies
 echo "Installing dependencies (Stow, uv, FZF, Zoxide)..."
 if [[ "$OS" == "Darwin" ]]; then
-    brew install stow uv fzf zoxide
+    brew install stow uv fzf zoxide gettext
 else
     # stow via apt on Ubuntu; brew for the rest
     sudo apt-get install -y stow xclip 2>/dev/null || brew install stow
@@ -44,6 +44,12 @@ rm -f ~/.zcompdump*
 # 5. Orchestrate links with GNU Stow
 echo "Linking dotfiles with GNU Stow..."
 cd ~/dev/dotfiles
-stow -t ~ zsh vim git tmux gemini
+stow -t ~ zsh vim git tmux
+
+# 6. Generate skills.json from template ($HOME differs across macOS /Users/ and Linux /home/)
+echo "Writing ~/.gemini/config/skills.json..."
+mkdir -p ~/.gemini/config
+envsubst '${HOME}' < ~/dev/dotfiles/templates/skills.json.tmpl \
+  > ~/.gemini/config/skills.json
 
 echo "✅ System ready. Run 'source ~/.zshrc' to start."
