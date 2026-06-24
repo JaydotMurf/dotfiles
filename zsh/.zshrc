@@ -46,7 +46,7 @@ setopt hist_ignore_all_dups
 setopt hist_ignore_space
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -G $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la $realpath'
 
 bindkey -e
 bindkey '^p' history-search-backward
@@ -69,6 +69,9 @@ elif [[ "$(uname -s)" == "Linux" ]]; then
 fi
 eval "$(zoxide init zsh)"
 [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob '!.git'"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
 
 ## 8. MODULAR LOADER (Fixed wildcard crash)
 if [ -d "$HOME/.zsh_modules" ]; then
@@ -115,6 +118,18 @@ alias avd='pkill -f chrome 2>/dev/null; sleep 2; google-chrome https://rdweb.wvd
 
 # Fabric aliases
 alias fabric='fabric-ai'
+alias fwisdom='fabric --pattern extract_wisdom'
+alias fsum='fabric --pattern summarize'
+alias fask='fabric --pattern ask_a_question'
+
+# pass: fuzzy pick + copy to clipboard
+pget() {
+  local entry
+  entry=$(find "$HOME/.password-store" -name '*.gpg' \
+    | sed "s|$HOME/.password-store/||;s|\.gpg$||" \
+    | fzf --prompt='pass > ') \
+  && pass -c "$entry"
+}
 
 
 # Added by Antigravity CLI installer

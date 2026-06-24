@@ -139,3 +139,72 @@ No manual switching needed — driven by `includeIf` in `~/.gitconfig`.
 ### Notes
 - `.plist` files are treated as XML automatically.
 - No swap or backup files created.
+
+---
+
+## fzf
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+r` | Fuzzy search shell history |
+| `Ctrl+t` | Fuzzy find file → paste path at cursor |
+| `Alt+c` | Fuzzy cd into subdirectory |
+| `Tab` (in zsh) | fzf-tab: fuzzy complete any tab target |
+
+Files are found with ripgrep (`FZF_DEFAULT_COMMAND=rg`), so `.gitignore` entries are respected.
+
+---
+
+## SSH port forwarding
+
+```bash
+# Forward remote port to localhost
+ssh -L <local_port>:localhost:<remote_port> user@host
+
+# Forward in background (no interactive shell)
+ssh -L 8080:localhost:8080 user@host -N -f
+
+# Reach a Kubernetes pod web UI locally
+kubectl port-forward pod/mypod 8080:8080
+ssh -L 8080:localhost:8080 user@bastion
+```
+
+---
+
+## pass (Unix password manager)
+
+```bash
+# Initial setup (once)
+gpg --gen-key
+pass init <gpg-key-id>
+
+# Daily use
+pass ls                          # list all entries
+pass show email/gmail            # show password
+pass -c email/gmail              # copy to clipboard (clears after 45s)
+pass insert email/newsite        # add new entry
+pass generate email/newsite 20   # generate 20-char password
+pass edit email/gmail            # edit entry in $EDITOR
+pget                             # fzf fuzzy picker → copy to clipboard
+```
+
+---
+
+## fabric
+
+```bash
+# Pipe text to a pattern
+cat notes.txt | fabric --pattern extract_wisdom
+fabric --pattern summarize < article.txt
+
+# YouTube transcript → insights
+fabric -y "https://youtube.com/..." --pattern extract_wisdom
+
+# List all patterns
+fabric --list
+
+# Shortcuts (defined in .zshrc)
+cat file.txt | fwisdom    # extract_wisdom
+echo "..." | fsum         # summarize
+echo "question" | fask    # ask_a_question
+```
