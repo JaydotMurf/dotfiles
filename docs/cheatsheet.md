@@ -112,7 +112,8 @@ Drop machine-local config (secrets, work aliases) in `~/.zsh_modules/*.zsh` — 
 
 ### Identity switching
 Git identity is automatic based on project directory:
-- Default → work identity (`80340739+JaydotMurf@users.noreply.github.com`)
+- Default → personal identity (GitHub noreply)
+- `~/dev/work/**` → work identity (from `~/.gitconfig-work`, machine-local, untracked)
 - `~/dev/personal/openclaw/**` → personal identity (`jerraill.openclaw@gmail.com`)
 
 No manual switching needed — driven by `includeIf` in `~/.gitconfig`.

@@ -5,3 +5,6 @@
 .netrc
 .claude/settings.local.json
 zsh/.zshrc.mac-backup
+
+# Machine-local work identity — never tracked (contains employer email)
+git/.gitconfig-work

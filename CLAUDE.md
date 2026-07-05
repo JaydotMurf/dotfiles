@@ -45,7 +45,7 @@ brew bundle --file=brew/Brewfile
 
 **Machine-local overrides**: `.zshrc` has a modular loader that sources `~/.zsh_modules/*.zsh`. Any machine-specific config (env vars, secrets, work-specific aliases) goes there rather than in the tracked `.zshrc`.
 
-**Git identity switching**: Default identity is personal (`Jerraill D. Murphy <80340739+JaydotMurf@users.noreply.github.com>`). The work identity (`80340739+JaydotMurf@users.noreply.github.com`, in `.gitconfig-work`) is loaded automatically via `includeIf "gitdir:~/dev/work/"`, and the OpenClaw identity (`jerraill.openclaw@gmail.com`) via `includeIf "gitdir:~/dev/personal/openclaw/"` — no manual switching needed. Personal-by-default is deliberate: commercial/side-project repos must never be authored under the work identity (clean-room separation).
+**Git identity switching**: Default identity is personal (`Jerraill D. Murphy <80340739+JaydotMurf@users.noreply.github.com>`). The work identity lives in `~/.gitconfig-work` — machine-local and untracked, like `~/.zsh_modules` — and is loaded automatically via `includeIf "gitdir:~/dev/work/"`. The OpenClaw identity (`jerraill.openclaw@gmail.com`) loads via `includeIf "gitdir:~/dev/personal/openclaw/"`. No manual switching needed. Personal-by-default is deliberate: side-project repos must never be authored under the work identity (clean-room separation). On a new machine, recreate `~/.gitconfig-work` by hand with the work `[user]` block; it is intentionally not in this repo.
 
 **Cross-platform**: `install.sh` branches on `uname -s` for Darwin vs Linux. On Linux, `stow` is installed via apt; `uv`, `fzf`, and `zoxide` come from Linuxbrew. Zsh permission fixes are macOS-only.
 
