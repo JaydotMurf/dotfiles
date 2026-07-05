@@ -1,6 +1,9 @@
 [user]
 	email = 80340739+JaydotMurf@users.noreply.github.com
-	name = Jerraill Murphy
+	name = Jerraill D. Murphy
+
+[includeIf "gitdir:~/dev/work/"]
+    path = ~/.gitconfig-work
 
 [includeIf "gitdir:~/dev/personal/openclaw/"]
     path = ~/.gitconfig-openclaw
