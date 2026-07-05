@@ -100,6 +100,20 @@ cheat() {
 alias claudeyolo="claude --dangerously-skip-permissions"
 alias claudeplan="claude --permission-mode plan"
 
+# claude.ai cloud connectors load only where they're used: ~/dev/portfolio
+# (Ideabrowser, Gamma, keywords-everywhere) and ~/dev/chief-of-staff (Open
+# Brain, Gmail, Calendar). Everywhere else they're suppressed to keep
+# sessions lean and lanes separated. Per-connector selection isn't possible
+# on this plan, so it's all-or-nothing per directory.
+claude() {
+  case "$PWD/" in
+    "$HOME/dev/portfolio/"*|"$HOME/dev/chief-of-staff/"*)
+      command claude "$@" ;;
+    *)
+      ENABLE_CLAUDEAI_MCP_SERVERS=false command claude "$@" ;;
+  esac
+}
+
 # Git aliases
 alias gi="git init"
 alias gs="git status -sbu"
