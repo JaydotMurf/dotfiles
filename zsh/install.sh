@@ -20,11 +20,11 @@ fi
 # 2. Install core dependencies
 echo "Installing dependencies (Stow, uv, FZF, Zoxide)..."
 if [[ "$OS" == "Darwin" ]]; then
-    brew install stow uv fzf zoxide gettext
+    brew install stow uv fzf zoxide gettext bat
 else
     # stow via apt on Ubuntu; brew for the rest
     sudo apt-get install -y stow xclip 2>/dev/null || brew install stow
-    brew install uv fzf zoxide
+    brew install uv fzf zoxide bat
 fi
 
 # 3. macOS only: fix Zsh directory permissions

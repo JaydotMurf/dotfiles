@@ -73,6 +73,21 @@ export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob '!.git'"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
 
+# ── bat: a better cat (syntax highlighting + markdown rendering) ──
+# Homebrew/Linuxbrew name the binary `bat`; Debian/Ubuntu apt names it `batcat`.
+# Normalize to `bat`, then route `cat` through it. bat prints plain — no colors,
+# decorations, or paging — when stdout isn't a TTY, so pipes, redirects, and
+# scripts are unaffected. Use `\cat` or `command cat` to reach raw cat.
+if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+  alias bat="batcat"
+fi
+if command -v bat &> /dev/null || command -v batcat &> /dev/null; then
+  alias cat="bat"
+  # Colorized, syntax-highlighted man pages
+  export MANPAGER="sh -c 'col -bx | bat --language man --plain'"
+  export MANROFFOPT="-c"
+fi
+
 ## 8. MODULAR LOADER (Fixed wildcard crash)
 if [ -d "$HOME/.zsh_modules" ]; then
   # (N) prevents "no matches found" errors
@@ -101,10 +116,13 @@ alias claudeyolo="claude --dangerously-skip-permissions"
 alias claudeplan="claude --permission-mode plan"
 
 # claude.ai cloud connectors load only where they're used: ~/dev/portfolio
-# (Ideabrowser, Gamma, keywords-everywhere) and ~/dev/chief-of-staff (Open
+# (Ideabrowser, Notion, keywords-everywhere) and ~/dev/chief-of-staff (Open
 # Brain, Gmail, Calendar). Everywhere else they're suppressed to keep
 # sessions lean and lanes separated. Per-connector selection isn't possible
 # on this plan, so it's all-or-nothing per directory.
+# NOTE: keywords-everywhere is currently absent from the claude.ai connector
+# list (not just disabled) — it must be re-added account-side at
+# claude.ai -> Settings -> Connectors before it loads here again.
 claude() {
   case "$PWD/" in
     "$HOME/dev/portfolio/"*|"$HOME/dev/chief-of-staff/"*)
