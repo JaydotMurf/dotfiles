@@ -112,7 +112,9 @@ cheat() {
 # Aliases
 
 # Claude aliases
-alias claudeyolo="claude --dangerously-skip-permissions"
+# claudeyolo (bypass-permissions) removed 2026-07-14 per POA&M-06: bypass mode
+# skips the ask-tier permission rules (PR/release/publish boundaries); only the
+# push hook survives. Widen the allowlist via /fewer-permission-prompts instead.
 alias claudeplan="claude --permission-mode plan"
 
 # claude.ai cloud connectors load only where they're used: ~/dev/portfolio
