@@ -8,6 +8,11 @@
 [includeIf "gitdir:~/dev/personal/openclaw/"]
     path = ~/.gitconfig-openclaw
 
+# Machine-local overrides (transport rewrites, host quirks). Untracked by
+# design, like ~/.gitconfig-work; git silently skips it where absent.
+[include]
+    path = ~/.gitconfig-local
+
 [init]
 	defaultBranch = main
 [credential "https://github.com"]
