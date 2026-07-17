@@ -47,6 +47,15 @@ brew bundle --file=brew/Brewfile
 
 **Git identity switching**: Default identity is personal (`Jerraill D. Murphy <80340739+JaydotMurf@users.noreply.github.com>`). The work identity lives in `~/.gitconfig-work` — machine-local and untracked, like `~/.zsh_modules` — and is loaded automatically via `includeIf "gitdir:~/dev/work/"`. The OpenClaw identity (`jerraill.openclaw@gmail.com`) loads via `includeIf "gitdir:~/dev/personal/openclaw/"`. No manual switching needed. Personal-by-default is deliberate: side-project repos must never be authored under the work identity (clean-room separation). On a new machine, recreate `~/.gitconfig-work` by hand with the work `[user]` block; it is intentionally not in this repo.
 
+**Machine-local git overrides**: `.gitconfig` also includes `~/.gitconfig-local` (untracked; git skips it silently where absent). Use it for per-machine transport quirks. Current use: on machines where agent shells can't sign with the passphrase-protected SSH key, add
+
+```ini
+[url "https://github.com/JaydotMurf/"]
+	insteadOf = git@github.com:JaydotMurf/
+```
+
+so personal-account remotes authenticate via the gh credential helper (requires `gh auth login`). Scoped to `JaydotMurf/` on purpose — work and OpenClaw-account remotes must keep their own transport/identity.
+
 **Cross-platform**: `install.sh` branches on `uname -s` for Darwin vs Linux. On Linux, `stow` is installed via apt; `uv`, `fzf`, and `zoxide` come from Linuxbrew. Zsh permission fixes are macOS-only.
 
 ## Cheat Sheet
