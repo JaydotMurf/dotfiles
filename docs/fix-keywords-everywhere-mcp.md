@@ -38,6 +38,16 @@ Also noticed: the `.zshrc` connector comment was stale — `Gamma` is gone and
 4. Restart Claude Code from `~/dev/portfolio` and confirm it shows in `/mcp`.
 
 ## Open item
-The MCP server URL/endpoint you originally configured is **not stored anywhere
-on this machine**. If you don't have it saved, reconstruct it from the
-keywordseverywhere.com MCP/integration docs when re-adding.
+~~The MCP server URL/endpoint is not stored anywhere on this machine.~~
+Resolved 2026-07-17 from the official docs (keywordseverywhere.com/mcp.html):
+
+- **Server URL:** `https://mcp.keywordseverywhere.com/mcp`
+- **Auth:** OAuth-style — when adding the connector you're prompted to sign in
+  with the Keywords Everywhere API key; token refresh is automatic after that.
+- **Prerequisites:** a valid API key and a paid plan with credits (any plan,
+  Bronze up; no separate MCP fee — uses the same credits as the extension/API).
+  A lapsed plan is consistent with the connector's silent account-side removal.
+
+Remaining action is unchanged and account-side: add it at claude.ai →
+Settings → Connectors with the URL above, then verify in `/mcp` from
+`~/dev/portfolio`.
