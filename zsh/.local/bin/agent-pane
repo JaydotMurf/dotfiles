@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# agent-pane — allocate, drive, and retire tmux panes running delegate agents.
+#
+# Subcommands
+#   new     [--cwd DIR] [--title T] [--min-width N] [--no-reuse]   -> prints a pane id
+#   launch  <pane> <prompt-file> [--cwd DIR]                       -> starts the agent
+#   send    <pane> <text>                                          -> sends a follow-up
+#   close   <pane> [--kill]                                        -> exits the agent
+#
+# Two behaviours here exist because both are silent failure modes when hand-rolled:
+#
+#  1. SUBMIT IS TWO STEPS. `tmux send-keys -t P 'long text' Enter` does NOT submit
+#     in the agent CLI's TUI — the text lands in the input box and the Enter is
+#     absorbed. It needs a second, bare `send-keys -t P Enter`. A supervising
+#     session that gets this wrong sits waiting on a delegate that never started.
+#     `launch` and `send` do it correctly and then VERIFY the message actually
+#     left the input box, exiting non-zero if it did not.
+#
+#  2. A PANE TOO NARROW TO READ DEFEATS THE POINT. Visible delegation is only
+#     worth anything if the human can watch. `new` reuses an idle pane, else
+#     splits only when the result stays above --min-width, else opens a new
+#     window rather than producing an unreadable sliver.
+
+set -uo pipefail
+
+MIN_WIDTH_DEFAULT=60
+die() { echo "agent-pane: $*" >&2; exit 1; }
+have_tmux() { [ -n "${TMUX:-}" ] || die "not inside a tmux session"; }
+
+# ---------------------------------------------------------------- new
+cmd_new() {
+  have_tmux
+  local cwd="" title="delegate" min="$MIN_WIDTH_DEFAULT" reuse=1 win=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cwd)       cwd="$2"; shift 2 ;;
+      --title)     title="$2"; shift 2 ;;
+      --min-width) min="$2"; shift 2 ;;
+      --window)    win="$2"; shift 2 ;;
+      --no-reuse)  reuse=0; shift ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+
+  local pane=""
+  # Resolve the window from the pane we are RUNNING IN, not from the attached
+  # client's active window. Bare `display-message -p` reports whatever window the
+  # user happens to be looking at, so a delegate would land in an unrelated
+  # window the moment the user switched tabs — or silently reuse a pane there.
+  if [ -z "$win" ]; then
+    if [ -n "${TMUX_PANE:-}" ]; then
+      win=$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}:#{window_index}')
+    else
+      win=$(tmux display-message -p '#{session_name}:#{window_index}')
+    fi
+  fi
+
+  # 1. Reuse the widest idle shell pane in this window, if one exists.
+  #    Self is excluded by pane id, NOT by pane_active: tmux makes a newly split
+  #    pane active, so filtering on "not active" would skip the very pane a
+  #    caller just opened for a delegate and silently fall through to creating
+  #    another one.
+  if [ "$reuse" -eq 1 ]; then
+    pane=$(tmux list-panes -t "$win" -F '#{pane_id} #{pane_current_command} #{pane_width}' \
+      | awk -v self="${TMUX_PANE:-}" '$1!=self && ($2=="zsh"||$2=="bash"||$2=="sh") {print $1, $3}' \
+      | sort -k2 -rn | head -1 | cut -d' ' -f1)
+  fi
+
+  # 2. Otherwise split the widest pane, but only if the halves stay readable.
+  if [ -z "$pane" ]; then
+    local widest_w
+    widest_w=$(tmux list-panes -t "$win" -F '#{pane_width}' | sort -rn | head -1)
+    if [ $((widest_w / 2)) -ge "$min" ]; then
+      pane=$(tmux split-window -h -t "$win" -P -F '#{pane_id}' ${cwd:+-c "$cwd"})
+    else
+      # 3. Too narrow to split: give the delegate its own full-width window.
+      pane=$(tmux new-window -P -F '#{pane_id}' -n "$title" ${cwd:+-c "$cwd"})
+    fi
+  fi
+
+  tmux select-pane -t "$pane" -T "$title" 2>/dev/null || true
+  tmux set-option -w -t "$win" pane-border-status top 2>/dev/null || true
+  tmux set-option -w -t "$win" pane-border-format ' #{pane_index}: #{pane_title} ' 2>/dev/null || true
+  echo "$pane"
+}
+
+# Send text, then submit as a separate keystroke, then confirm it actually left
+# the input box. Returns non-zero on a failed submit rather than failing quietly.
+_send_and_submit() {
+  local pane="$1" text="$2"
+  tmux send-keys -t "$pane" "$text"
+  sleep 1
+  tmux send-keys -t "$pane" Enter
+  sleep 3
+
+  local probe state
+  probe=$(printf '%s' "$text" | cut -c1-24)
+  state=$(agent-pane-state "$pane" 2>/dev/null || echo IDLE)
+  if [ "$state" = "IDLE" ] && tmux capture-pane -pt "$pane" 2>/dev/null | grep -qF "$probe"; then
+    tmux send-keys -t "$pane" Enter   # one retry
+    sleep 3
+    state=$(agent-pane-state "$pane" 2>/dev/null || echo IDLE)
+    if [ "$state" = "IDLE" ] && tmux capture-pane -pt "$pane" 2>/dev/null | grep -qF "$probe"; then
+      echo "agent-pane: message did NOT submit in $pane — text is still in the input box" >&2
+      return 1
+    fi
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------- launch
+cmd_launch() {
+  have_tmux
+  local pane="${1:-}" file="${2:-}"; shift 2 2>/dev/null || die "usage: agent-pane launch <pane> <prompt-file> [--cwd DIR]"
+  [ -z "$pane" ] || [ -z "$file" ] && die "usage: agent-pane launch <pane> <prompt-file> [--cwd DIR]"
+  [ -f "$file" ] || die "prompt file not found: $file"
+  local cwd=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cwd) cwd="$2"; shift 2 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+
+  # The prompt is expanded by the delegate's SHELL, not read by the delegate
+  # agent. That matters when the delegate runs in a different lane or directory
+  # than the file: the text arrives as an argument, so the agent never has to
+  # read across a boundary it should not cross.
+  local cmd=""
+  [ -n "$cwd" ] && cmd="cd $(printf '%q' "$cwd") && "
+  cmd="${cmd}claude \"\$(cat $(printf '%q' "$file"))\""
+
+  tmux send-keys -t "$pane" "$cmd" Enter   # a shell prompt submits normally
+  sleep 6
+  echo "launched in $pane"
+}
+
+# ---------------------------------------------------------------- send
+cmd_send() {
+  have_tmux
+  local pane="${1:-}" text="${2:-}"
+  [ -z "$pane" ] || [ -z "$text" ] && die "usage: agent-pane send <pane> <text>"
+  _send_and_submit "$pane" "$text" || exit 1
+  echo "sent to $pane"
+}
+
+# ---------------------------------------------------------------- close
+cmd_close() {
+  have_tmux
+  local pane="${1:-}"; shift 2>/dev/null || true
+  [ -z "$pane" ] && die "usage: agent-pane close <pane> [--kill]"
+  if [ "${1:-}" = "--kill" ]; then
+    tmux kill-pane -t "$pane" && echo "killed $pane"
+    return
+  fi
+  # Default is to RESTORE the pane to its shell, not destroy it. A pane that was
+  # borrowed from the user should be handed back, and its scrollback with it.
+  tmux send-keys -t "$pane" '/exit'
+  sleep 1
+  tmux send-keys -t "$pane" Enter
+  sleep 5
+  tmux select-pane -t "$pane" -T "shell" 2>/dev/null || true
+  echo "restored $pane to $(tmux display-message -p -t "$pane" '#{pane_current_command}' 2>/dev/null || echo gone)"
+}
+
+case "${1:-}" in
+  new)    shift; cmd_new "$@" ;;
+  launch) shift; cmd_launch "$@" ;;
+  send)   shift; cmd_send "$@" ;;
+  close)  shift; cmd_close "$@" ;;
+  *) echo "usage: agent-pane {new|launch|send|close} ..." >&2; exit 2 ;;
+esac

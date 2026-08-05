@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# agent-pane-state — report what a delegate agent pane is currently doing.
+#
+# Usage:  agent-pane-state <pane-id>          # e.g. agent-pane-state %23
+#         agent-pane-state <pane-id> --watch  # emit only on state change, forever
+#
+# Prints exactly one of:
+#   NEEDS_APPROVAL  a permission prompt is on screen and nobody is answering it
+#   RUNNING         the agent is working
+#   IDLE            at its prompt: finished, or waiting for input
+#   GONE            the pane no longer exists
+#
+# Why this exists: distinguishing "working" from "finished" by eye is easy and by
+# regex is not. A detector that misreads a working agent as finished will make a
+# supervising session report success while the work is still in flight. The
+# RUNNING patterns below match the elapsed-time counter the CLI renders while it
+# is thinking; they are the reliable signal, and they are easy to get wrong.
+
+set -uo pipefail
+
+PANE="${1:-}"
+[ -z "$PANE" ] && { echo "usage: agent-pane-state <pane-id> [--watch]" >&2; exit 2; }
+WATCH="${2:-}"
+
+state() {
+  local c
+  # Existence is checked against the pane list, never inferred from content:
+  # a live pane that has just been cleared has empty content, and reporting that
+  # as GONE would tell a supervising session the delegate died when it did not.
+  if ! tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx -- "$PANE"; then
+    echo GONE; return
+  fi
+  c=$(tmux capture-pane -pt "$PANE" 2>/dev/null) || { echo GONE; return; }
+  [ -z "$c" ] && { echo IDLE; return; }
+
+  # A permission prompt beats everything: the agent is blocked, not working.
+  if printf '%s' "$c" | grep -qiE 'do you want to (proceed|create)|❯ *1\. Yes|allow all edits|allow reading'; then
+    echo NEEDS_APPROVAL; return
+  fi
+
+  # Elapsed-time counter or explicit interrupt hint means work is in progress.
+  # Matching only a spinner glyph is not enough — glyphs vary between versions.
+  if printf '%s' "$c" | grep -qiE '[0-9]+m [0-9]+s|[0-9]+s ·|esc to interrupt|thinking\)'; then
+    echo RUNNING; return
+  fi
+
+  echo IDLE
+}
+
+if [ "$WATCH" = "--watch" ]; then
+  prev=""
+  while true; do
+    s=$(state)
+    if [ "$s" != "$prev" ]; then
+      echo "$s"
+      prev="$s"
+    fi
+    [ "$s" = "GONE" ] && exit 0
+    sleep "${AGENT_PANE_POLL:-20}"
+  done
+else
+  state
+fi
