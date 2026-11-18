@@ -8,3 +8,11 @@ zsh/.zshrc.mac-backup
 
 # Machine-local work identity — never tracked (contains employer email)
 git/.gitconfig-work
+
+# ~/.local/bin is where installers (uv tool, pipx, vendor CLIs) drop binaries.
+# On a machine still using the old folded symlink they land here; ignore
+# everything except the scripts this repo owns. New script? Add a `!` line.
+zsh/.local/bin/*
+!zsh/.local/bin/agent-pane
+!zsh/.local/bin/agent-pane-state
+!zsh/.local/bin/tmux-sessionizer
