@@ -9,14 +9,12 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/). S
 ## Key Commands
 
 ```bash
-# Full bootstrap (installs Homebrew, deps, and stows everything)
+# Full bootstrap (apt packages on Linux, Homebrew, deps, stow, templates). Safe to re-run.
 bash zsh/install.sh
 
-# Stow individual config groups (run from ~/dev/dotfiles)
-stow zsh
-stow vim
-stow git
-stow -D zsh   # unstow (remove symlinks)
+# Restow after pulling changes (run from ~/dev/dotfiles). Always --no-folding.
+stow --no-folding -R -t ~ zsh vim git tmux
+stow -D -t ~ zsh   # unstow (remove symlinks)
 
 # Reload Zsh config after changes
 source ~/.zshrc   # or: sz (alias)
@@ -32,18 +30,23 @@ brew bundle --file=brew/Brewfile
 
 | Directory | Stowed to | Contents |
 |-----------|-----------|----------|
-| `zsh/`    | `~`       | `.zshrc`, `.p10k.zsh`, `install.sh`, `.local/bin/tmux-sessionizer` |
-| `git/`    | `~`       | `.gitconfig`, `.gitconfig-work`, `.gitconfig-openclaw` |
+| `zsh/`    | `~`       | `.zshrc`, `.p10k.zsh`, `install.sh`, `.local/bin/{tmux-sessionizer,agent-pane,agent-pane-state}` |
+| `git/`    | `~`       | `.gitconfig`, `.gitconfig-openclaw` |
 | `vim/`    | `~`       | `.vimrc` |
 | `tmux/`   | `~`       | `.tmux.conf` |
-| `gemini/`  | `~`       | `.gemini/config/skills.json` — Antigravity shared skills registry |
-| `brew/`   | not stowed | `Brewfile` — package manifest |
+| `templates/` | not stowed | `skills.json.tmpl` — rendered by `install.sh` via `envsubst` to `~/.gemini/config/skills.json` (Antigravity skills registry; needs an absolute path, so it cannot be stowed) |
+| `brew/`   | not stowed | `Brewfile` — macOS package manifest |
+| `docs/`   | not stowed | `cheatsheet.md` and troubleshooting notes |
 
 ## Architecture Notes
 
 **Zsh plugin manager**: Zinit (not Oh-My-Zsh). Plugins are loaded in `.zshrc` in a specific order: Powerlevel10k instant prompt must come first, then `compinit`, then plugins, then `cdreplay -q` to replay completions.
 
 **Machine-local overrides**: `.zshrc` has a modular loader that sources `~/.zsh_modules/*.zsh`. Any machine-specific config (env vars, secrets, work-specific aliases) goes there rather than in the tracked `.zshrc`.
+
+**This repo is public, and `~/.zshrc` is a symlink into it.** Tool installers (SDKMAN, vendor CLIs) append PATH lines — and sometimes tokens — straight to the tracked file. Before any commit, check `git diff zsh/.zshrc` for installer-added lines and move them to `~/.zsh_modules/<tool>.zsh`. Never commit a hardcoded `/Users/...` or `/home/...` path, a token, or an employer-specific alias.
+
+**Stow is always run with `--no-folding`.** Folding made `~/.local/bin` a symlink to `zsh/.local/bin`, so `uv tool`, `pipx`, and vendor installers wrote binaries into the repo. `install.sh` un-folds machines stowed the old way (moving untracked files out to the real `~/.local/bin`), and `.gitignore` allowlists only the scripts this repo owns under `zsh/.local/bin/` — a new script there needs a matching `!` line.
 
 **Git identity switching**: Default identity is personal (`Jerraill D. Murphy <80340739+JaydotMurf@users.noreply.github.com>`). The work identity lives in `~/.gitconfig-work` — machine-local and untracked, like `~/.zsh_modules` — and is loaded automatically via `includeIf "gitdir:~/dev/work/"`. The OpenClaw identity (`jerraill.openclaw@gmail.com`) loads via `includeIf "gitdir:~/dev/personal/openclaw/"`. No manual switching needed. Personal-by-default is deliberate: side-project repos must never be authored under the work identity (clean-room separation). On a new machine, recreate `~/.gitconfig-work` by hand with the work `[user]` block; it is intentionally not in this repo.
 
@@ -56,7 +59,11 @@ brew bundle --file=brew/Brewfile
 
 so personal-account remotes authenticate via the gh credential helper (requires `gh auth login`). Scoped to `JaydotMurf/` on purpose — work and OpenClaw-account remotes must keep their own transport/identity.
 
-**Cross-platform**: `install.sh` branches on `uname -s` for Darwin vs Linux. On Linux, `stow` is installed via apt; `uv`, `fzf`, and `zoxide` come from Linuxbrew. Zsh permission fixes are macOS-only.
+**Git credential helper**: `.gitconfig` calls `gh auth git-credential` through a small shell function that probes `/opt/homebrew/bin`, `/home/linuxbrew/.linuxbrew/bin`, and `/usr/bin` before falling back to `PATH`. Do not run `gh auth setup-git` — it rewrites the tracked file with an absolute path that only works on the machine it ran on.
+
+**Cross-platform**: `install.sh` branches on `uname -s` for Darwin vs Linux and bootstraps a bare Ubuntu install. On Linux, apt provides the system layer (Homebrew build prerequisites, `zsh`, `stow`, `tmux`, full `vim`, `gettext-base`, `wl-clipboard`/`xclip`, `gnupg`, `pass`) and the script sets zsh as the login shell; the CLI tools (`uv`, `fzf`, `zoxide`, `bat`, `ripgrep`, `glow`, `gh`) come from Linuxbrew so versions match the Macs. Zsh permission fixes are macOS-only. In `.zshrc`, anything OS- or tool-dependent is guarded (`[[ -x ... ]]` / `command -v`) so a machine missing a tool still gets a clean shell; `ls` color flags branch on `$OSTYPE` because GNU `ls -G` means "hide group", not color.
+
+Before linking, `install.sh` backs up any real file that would block a link to `<file>.pre-dotfiles.<timestamp>` and replaces hand-made absolute symlinks (stow refuses to adopt those and aborts).
 
 ## Cheat Sheet
 
@@ -87,5 +94,6 @@ tmux source ~/.tmux.conf
 ## Adding New Config
 
 1. Create a new subdirectory matching the file structure relative to `~` (e.g., `newapp/.config/newapp/config`).
-2. Run `stow newapp` from `~/dev/dotfiles`.
-3. Add the new stow target to the `stow` line in `install.sh` so it's included in future bootstraps.
+2. Run `stow --no-folding -t ~ newapp` from `~/dev/dotfiles`.
+3. Add the new stow target to the `PACKAGES` array in `install.sh` so it's included in future bootstraps.
+4. If the file needs an absolute path (`$HOME` differs between macOS and Linux), do not stow it — add a `templates/<file>.tmpl` and an `envsubst` step in `install.sh` instead.

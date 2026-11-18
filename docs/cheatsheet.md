@@ -66,20 +66,20 @@
 | Alias | Expands to |
 |-------|------------|
 | `..` | `cd ..` |
-| `dot` | `cd ~/dotfiles` |
+| `dot` | `cd ~/dev/dotfiles` |
 | `z <dir>` | Jump to frecent directory (zoxide) |
 | `sz` | `source ~/.zshrc` — reload shell config |
 
 ### Listing
 | Alias | Expands to |
 |-------|------------|
-| `ls` | `ls -G` (colorized) |
-| `ll` | `ls -alhG` (long, all, human-readable) |
+| `ls` | Colorized `ls` (`-G` on macOS, `--color=auto` on Linux) |
+| `ll` | Long, all, human-readable, colorized |
 
 ### AI
 | Alias | Expands to |
 |-------|------------|
-| `claudeyolo` | `claude --dangerously-skip-permissions` |
+| `claudeplan` | `claude --permission-mode plan` |
 
 ### History
 | Key | Action |
@@ -88,7 +88,7 @@
 | `Ctrl+n` | Search history forward |
 
 ### Modular config
-Drop machine-local config (secrets, work aliases) in `~/.zsh_modules/*.zsh` — auto-sourced at shell start, not tracked in the repo.
+Drop machine-local config (secrets, work aliases, installer-added PATH lines) in `~/.zsh_modules/*.zsh` — auto-sourced at shell start, not tracked in the repo. If an installer appends to `~/.zshrc`, move it there before committing.
 
 ---
 
