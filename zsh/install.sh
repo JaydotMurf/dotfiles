@@ -137,7 +137,34 @@ done
 #     directories. -R (restow) makes re-runs prune links to deleted files.
 stow --no-folding --ignore='\.DS_Store' -R -t "$HOME" "${PACKAGES[@]}"
 
-# 8. Generate skills.json from template ($HOME differs across macOS /Users/ and Linux /home/)
+# 8. Claude Code — skipped if any `claude` is already installed.
+#    Runs after stow on purpose: the native installer drops its launcher in
+#    ~/.local/bin, which must be a real directory by now, not a link into
+#    this repo. macOS uses the Homebrew cask (matches brew/Brewfile); Linux
+#    uses the official native installer. Failure here is not fatal — the
+#    rest of the machine is usable without it.
+export PATH="$HOME/.local/bin:$PATH"
+if command -v claude &> /dev/null; then
+    echo "Claude Code already installed ($(command -v claude))."
+else
+    echo "Installing Claude Code..."
+    zshrc_before=$(cksum < "$DOTFILES/zsh/.zshrc")
+    if [[ "$OS" == "Darwin" ]]; then
+        brew install --cask claude-code@latest \
+            || echo "⚠️  Claude Code install failed — retry: brew install --cask claude-code@latest" >&2
+    else
+        curl -fsSL https://claude.ai/install.sh | bash \
+            || echo "⚠️  Claude Code install failed — retry: curl -fsSL https://claude.ai/install.sh | bash" >&2
+    fi
+    # ~/.zshrc is a symlink into this public repo; an installer's "shell
+    # integration" must not end up committed.
+    if [[ "$(cksum < "$DOTFILES/zsh/.zshrc")" != "$zshrc_before" ]]; then
+        echo "⚠️  The Claude Code installer modified the tracked zsh/.zshrc." >&2
+        echo "    Move what it added into ~/.zsh_modules/claude.zsh, then: git -C $DOTFILES checkout zsh/.zshrc" >&2
+    fi
+fi
+
+# 9. Generate skills.json from template ($HOME differs across macOS /Users/ and Linux /home/)
 echo "Writing ~/.gemini/config/skills.json..."
 mkdir -p ~/.gemini/config
 envsubst '${HOME}' < "$DOTFILES/templates/skills.json.tmpl" \
@@ -148,6 +175,7 @@ echo
 echo "Next steps (manual, per machine):"
 echo "  • Open a new terminal (Linux: log out and back in for the zsh login shell)."
 echo "  • gh auth login                   — HTTPS GitHub auth for git"
+echo "  • claude                          — sign in to Claude Code on first run"
 echo "  • ~/.zsh_modules/*.zsh            — machine-local env vars, secrets, aliases"
 echo "  • ~/.gitconfig-work, ~/.gitconfig-local — machine-local git identity/transport (see CLAUDE.md)"
 echo "  • Install a Nerd Font and select it in the terminal (Powerlevel10k glyphs)."

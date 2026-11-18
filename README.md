@@ -30,12 +30,14 @@ What it does:
 3. **Ubuntu:** makes zsh the login shell. **macOS:** fixes zsh completion directory permissions.
 4. Backs up any real file that would block a link to `<file>.pre-dotfiles.<timestamp>` — nothing is deleted.
 5. Links everything with `stow --no-folding`.
-6. Generates `~/.gemini/config/skills.json` from `templates/`.
+6. Installs Claude Code if no `claude` is present — the Homebrew cask on macOS, the official native installer on Ubuntu.
+7. Generates `~/.gemini/config/skills.json` from `templates/`.
 
 Then, by hand, per machine:
 
 - Open a new terminal (on Ubuntu, log out and back in so the login shell change applies).
 - `gh auth login` — git uses `gh` as its HTTPS credential helper.
+- `claude` — sign in to Claude Code on first run.
 - Install a [Nerd Font](https://www.nerdfonts.com/) and select it in the terminal.
 - Create the machine-local files below as needed.
 
