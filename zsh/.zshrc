@@ -54,24 +54,43 @@ bindkey '^n' history-search-forward
 
 ## 6. STARTER ALIASES
 alias ..="cd .."
-alias ls="ls -G"
-alias ll="ls -alhG"
+# Colorized ls: BSD ls (macOS) uses -G; GNU ls (Linux) reads -G as "hide group".
+if [[ "$OSTYPE" == darwin* ]]; then
+  alias ls="ls -G"
+  alias ll="ls -alhG"
+else
+  alias ls="ls --color=auto"
+  alias ll="ls -alh --color=auto"
+fi
 alias dot="cd ~/dev/dotfiles"
 alias sz="source ~/.zshrc && echo 'Zsh config reloaded!'"
 alias k=kubectl
 
 ## 7. EXTERNAL TOOLS
 # ── Platform-aware Homebrew ──────────────────────────────
-if [[ "$(uname -s)" == "Darwin" ]]; then
+# Guarded on the binary, not the OS, so a machine without (Linux)brew still
+# gets a clean shell.
+if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [[ "$(uname -s)" == "Linux" ]]; then
+elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
-eval "$(zoxide init zsh)"
-[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
-export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob '!.git'"
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+command -v zoxide &> /dev/null && eval "$(zoxide init zsh)"
+
+# ── fzf: Ctrl-T (files), Ctrl-R (history), Alt-C (cd), ** completion ──
+# `fzf --zsh` needs fzf >= 0.48; older installs fall back to ~/.fzf.zsh.
+if command -v fzf &> /dev/null; then
+  if fzf --zsh &> /dev/null; then
+    source <(fzf --zsh)
+  elif [[ -f ~/.fzf.zsh ]]; then
+    source ~/.fzf.zsh
+  fi
+  if command -v rg &> /dev/null; then
+    export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob '!.git'"
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  fi
+  export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+fi
 
 # ── bat: a better cat (syntax highlighting + markdown rendering) ──
 # Homebrew/Linuxbrew name the binary `bat`; Debian/Ubuntu apt names it `batcat`.
@@ -147,8 +166,6 @@ alias gpl="git pull"
 alias gst="git stash"
 alias gstl="git stash list"
 alias glg='git log --graph --oneline --decorate --all'
-# Army AVD
-alias avd='pkill -f chrome 2>/dev/null; sleep 2; google-chrome https://rdweb.wvd.azure.us/arm/webclient/index.html &'
 
 # Fabric aliases
 alias fabric='fabric-ai'
@@ -165,6 +182,8 @@ pget() {
   && pass -c "$entry"
 }
 
-
-# Added by Antigravity CLI installer
-export PATH="/home/jerraill/.local/bin:$PATH"
+# ── Keep this file machine-neutral ───────────────────────────────
+# ~/.zshrc is a symlink into a public repo. Tool installers (SDKMAN, CLI
+# installers, cloud CLIs) like to append PATH lines and tokens below this
+# point. Move anything they add into ~/.zsh_modules/<tool>.zsh — untracked,
+# per-machine, loaded by the modular loader above — and never commit it here.
