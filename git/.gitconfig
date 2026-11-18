@@ -3,7 +3,7 @@
 	name = Jerraill D. Murphy
 
 [includeIf "gitdir:~/dev/work/"]
-    path = ~/.gitconfig-work
+	path = ~/.gitconfig-work
 
 [includeIf "gitdir:~/dev/personal/openclaw/"]
     path = ~/.gitconfig-openclaw
@@ -15,9 +15,13 @@
 
 [init]
 	defaultBranch = main
+# gh as the HTTPS credential helper. `gh auth setup-git` writes an absolute
+# /opt/homebrew path, which breaks on Linux; this probes the known install
+# locations (macOS brew, Linuxbrew, apt) and falls back to PATH, so it works
+# on every machine and from shells that never ran `brew shellenv`.
 [credential "https://github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper =
+	helper = "!f() { for g in /opt/homebrew/bin/gh /home/linuxbrew/.linuxbrew/bin/gh /usr/bin/gh; do [ -x \"$g\" ] && exec \"$g\" auth git-credential \"$@\"; done; exec gh auth git-credential \"$@\"; }; f"
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper =
+	helper = "!f() { for g in /opt/homebrew/bin/gh /home/linuxbrew/.linuxbrew/bin/gh /usr/bin/gh; do [ -x \"$g\" ] && exec \"$g\" auth git-credential \"$@\"; done; exec gh auth git-credential \"$@\"; }; f"
