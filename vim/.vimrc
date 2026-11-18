@@ -6,7 +6,7 @@ set showcmd                 " Show command in bottom bar
 set cursorline              " Highlight the current line
 set showmatch               " Highlight matching brackets
 set mouse=a                 " Enable mouse support for scrolling/resizing
-
+set linebreak               " Prevent Vim from splitting words mid-word "
 " --- UI & Colors ---
 syntax on                   " Enable syntax highlighting
 filetype plugin indent on   " Enable filetype detection and indentation
